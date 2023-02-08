@@ -1,5 +1,7 @@
 #include <iostream> 
+#include <vector>
 #define HEAP_SIZE 65536 // Arbitrary for now, 2^16
+using namespace std;
 
 /* A simple mark and sweep algorithm */
 
@@ -7,10 +9,10 @@
 struct ObjectHeader {
     size_t size = sizeof(this);
     bool marked = false;
+
 };
 
 struct Object : ObjectHeader {
-    //int id;
     char name; // should be something like id, but for testing sake its char
     Object* child;
 };
@@ -20,8 +22,7 @@ struct Heap {
     Object heap_space[HEAP_SIZE];
 };
 
-// For now it assumes that it is given root objects from the start
-// Should, for instance, be a workinglist later
+// For now it assumes that it is given root objects from the start, no root finding included
 class MarkSweep {
     public:
         void mark(Object* obj) {
@@ -34,11 +35,10 @@ class MarkSweep {
             }
         }
 
-        void sweep(Heap heap) {
-            for (Object obj: heap.heap_space) {
-                if (!markedBit(&obj)) {
-                    //free(&obj); // this is temporary, should be own impl later
-                    delete &obj;
+        void sweep(vector<Object*> worklist) {
+            for (Object* obj: worklist) {
+                if (!markedBit(obj) && obj != nullptr) {
+                    delete obj;
                 }
             }
         }
@@ -65,19 +65,19 @@ int main() {
     d->name = 'D';
     d->child = nullptr;
 
-    Heap* heap = new Heap{*c, *b, *d};
-    MarkSweep gc;
-    gc.mark(c);
-    std::cout << "Expected 1, got: " << b->marked << '\n';
-    std::cout << "Expected 1, got: " << c->marked << '\n';
-    std::cout << "Expected 0, got: " << d->marked << '\n';
+    //Heap* heap = new Heap{*c, *b, *d};
+    vector<Object*> worklist = {c, b, d};
+    MarkSweep* gc = new MarkSweep();
 
-    // sweep doesn't work yet in the context, since b,c,d is not on in the heap mem.
-    gc.sweep(*heap); 
-    std::cout << b << '\n';
-    std::cout << c->marked << '\n';
-    std::cout << d << '\n';
+    gc->mark(c);
+    cout << "Expected 1, got: " << b->marked << '\n';
+    cout << "Expected 1, got: " << c->marked << '\n';
+    cout << "Expected 0, got: " << d->marked << '\n';
 
+    gc->sweep(worklist); 
+    cout << b->name << '\n';
+    cout << c->name << '\n';
+    cout << d->name << '\n'; // The object at d is now deleted (freed)
     return 0;
 }
 
