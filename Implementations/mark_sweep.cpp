@@ -15,6 +15,8 @@ struct ObjectHeader {
 struct Object : ObjectHeader {
     char name; // should be something like id, but for testing sake its char
     Object* child;
+    //Object(char name) {}
+    //Object(char name, Object* child) {}
 };
 
 // Representing the heap as a simple struct for now
